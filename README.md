@@ -6,9 +6,11 @@ DeskPet 是一款 macOS 桌面宠物，默认角色是原创角色明里。她�
 
 ## 安装
 
-DeskPet 可以通过 DMG 安装包分发。发布的安装包会放在 [Releases 页面](https://github.com/ywainhanayo/DeskPet/releases)；打开 DMG 后，将 `DeskPet.app` 拖入“应用程序”文件夹即可。若页面暂时没有安装包，也可以按下面的步骤从源码运行。
+DeskPet 可以通过 DMG 安装包分发。发布的安装包会放在 [Releases 页面](https://github.com/ywainhanayo/DeskPet/releases)。打开 DMG 后，将 `DeskPet.app` 拖入“应用程序”文件夹即可。
 
-## 从源码运行
+DMG 已包含 Python 运行环境和所需依赖，安装用户不需要另装 Python。若页面暂时没有安装包，也可以按下面的步骤从源码运行。
+
+## 从源码运行（开发者）
 
 需要 Python 3.11。在仓库目录中执行：
 
