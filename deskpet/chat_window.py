@@ -26,6 +26,8 @@ BORDER = 2        # 气泡描边宽
 TAIL = 14         # 尾巴高度
 RADIUS = 13.0     # 气泡圆角
 INK = "#3a3a3a"
+MESSAGE_GAP = 10
+MESSAGE_LINE_HEIGHT = 125
 
 STYLE = """
 QTextBrowser { border: none; background: transparent; font-size: 13px; color:#333333; }
@@ -162,15 +164,19 @@ class ChatWindow(QWidget):
         解析器当默认值丢掉——所以插入后用光标对刚插入的块统一设 AlignLeft。"""
         cursor = self.log.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End)
-        start = cursor.position()
         if self.log.toPlainText():
             cursor.insertBlock()          # 每条消息独立段落(首条不用,避免顶部空行)
+        start = cursor.position()
         cursor.insertHtml(html_frag)
-        end = self.log.textCursor().position()
+        end = cursor.position()
         cursor.setPosition(start)
         cursor.setPosition(end, QTextCursor.MoveMode.KeepAnchor)
         bf = QTextBlockFormat()
         bf.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        bf.setTopMargin(0)
+        bf.setBottomMargin(MESSAGE_GAP)
+        bf.setLineHeight(MESSAGE_LINE_HEIGHT,
+                         QTextBlockFormat.LineHeightTypes.ProportionalHeight.value)
         cursor.setBlockFormat(bf)         # 作用于选区内所有块
         cursor.clearSelection()           # 光标停末尾且不带选区,自动滚到底
         self.log.setTextCursor(cursor)

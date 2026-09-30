@@ -6,7 +6,7 @@ DeskPet 是一款 macOS 桌面宠物，默认角色是原创角色明里。她�
 
 ## 安装
 
-当前提供 [DeskPet 0.2.0 · Apple Silicon DMG](https://github.com/ywainhanayo/DeskPet/releases/download/v0.2.0/DeskPet-0.2.0-arm64.dmg) 预发布版，也可在 [Releases 页面](https://github.com/ywainhanayo/DeskPet/releases) 查看。打开 DMG 后，将 `DeskPet.app` 拖入“应用程序”文件夹即可。
+Apple Silicon DMG 安装包在 [Releases 页面](https://github.com/ywainhanayo/DeskPet/releases) 提供下载。打开 DMG 后，将 `DeskPet.app` 拖入“应用程序”文件夹即可。
 
 DMG 已包含 Python 运行环境和所需依赖，安装用户不需要另装 Python。开发者也可以按下面的步骤从源码运行。
 
@@ -41,5 +41,7 @@ API key 和其他设置保存在本机 `~/Library/Application Support/DeskPet/co
 ## 授权与构建
 
 代码和文档采用 [MIT 许可](LICENSE)。明里图片及应用图标另按 [素材使用规则](ARTWORK_LICENSE.md) 授权，不能直接按 MIT 处理。
+
+应用内第三方组件的许可见 [第三方声明](THIRD_PARTY_NOTICES.md)。
 
 开发者可参阅 [构建说明](packaging/README.md)。本仓库不包含其他角色皮肤包；DMG 下载以 Releases 页面实际发布的文件为准。

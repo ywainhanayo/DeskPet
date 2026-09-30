@@ -249,6 +249,8 @@ class ChatClient(QObject):
         if brief:
             done(True, brief, "model")
             return
+        print(f"[persona] model brief unavailable; wiki fallback for {char_name}",
+              file=sys.stderr, flush=True)
         if not self._api_key:
             done(False, "", "")   # ②的提炼也要模型,没 key 直接放弃,不白抓 wiki
             return
@@ -278,7 +280,8 @@ class ChatClient(QObject):
             callback(None)
             return
         body = json.dumps({"model": self._model, "messages": messages,
-                           "stream": False, "max_tokens": BRIEF_TOKENS}).encode("utf-8")
+                           "stream": False, "max_tokens": BRIEF_TOKENS,
+                           "thinking": {"type": "disabled"}}).encode("utf-8")
         req = QNetworkRequest(API_URL)
         req.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")
         req.setRawHeader(b"Authorization", b"Bearer " + self._api_key.encode("utf-8"))
@@ -292,14 +295,26 @@ class ChatClient(QObject):
             raw = bytes(reply.readAll()).decode("utf-8", "replace")
             reply.deleteLater()
             if err != _ERR_NO or status != 200:
-                print(f"[persona] HTTP {status} err={err}: {raw[:200]}", file=sys.stderr)
+                print(f"[persona] model request failed: HTTP {status} err={err}",
+                      file=sys.stderr, flush=True)
                 callback(None)
                 return
             try:
-                callback(json.loads(raw)["choices"][0]["message"]["content"].strip())
+                choice = json.loads(raw)["choices"][0]
+                message = choice["message"]
+                content = (message.get("content") or "").strip()
+                reasoning = message.get("reasoning_content") or ""
+                finish = choice.get("finish_reason")
+                print(f"[persona] model response: HTTP {status} finish={finish} "
+                      f"content_chars={len(content)} reasoning_chars={len(reasoning)}",
+                      file=sys.stderr, flush=True)
             except Exception:
-                print(f"[persona] 响应格式异常: {raw[:200]}", file=sys.stderr)
+                print("[persona] model response format invalid",
+                      file=sys.stderr, flush=True)
                 callback(None)
+                return
+            # A truncated result must not become a saved character profile.
+            callback(content if content and finish != "length" else None)
 
         reply.finished.connect(finished)
 
@@ -313,18 +328,30 @@ class ChatClient(QObject):
         reply = self._nam.get(req)
 
         def finished():
+            status = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
+            status = int(status) if status is not None else None
+            err = int(getattr(reply.error(), "value", reply.error()))
             raw = bytes(reply.readAll()).decode("utf-8", "replace")
             reply.deleteLater()
+            if err != _ERR_NO or status != 200:
+                print(f"[persona] wiki request failed: HTTP {status} err={err}",
+                      file=sys.stderr, flush=True)
+                callback("")
+                return
             try:
                 pages = json.loads(raw)["query"]["pages"]
                 page = next(iter(pages.values()))
                 extract = (page.get("extract") or "").strip()
+                print(f"[persona] wiki response: title={page.get('title')} "
+                      f"missing={'missing' in page} extract_chars={len(extract)}",
+                      file=sys.stderr, flush=True)
                 if not extract or page.get("missing") is not None:
                     callback("")
                     return
                 callback(extract[:WIKI_CHARS])
             except Exception:
-                print(f"[persona] wiki 响应异常: {raw[:200]}", file=sys.stderr)
+                print("[persona] wiki response format invalid",
+                      file=sys.stderr, flush=True)
                 callback("")
 
         reply.finished.connect(finished)

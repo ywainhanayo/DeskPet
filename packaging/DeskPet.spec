@@ -10,15 +10,31 @@ a = Analysis(
     ['../main.py'],
     pathex=[],
     binaries=[],
-    datas=[('../sprites', 'sprites')],
+    datas=[
+        ('../sprites', 'sprites'),
+        ('../LICENSE', 'licenses/DeskPet'),
+        ('../ARTWORK_LICENSE.md', 'licenses/DeskPet'),
+        ('../THIRD_PARTY_NOTICES.md', 'licenses'),
+        ('licenses', 'licenses/third-party'),
+    ],
     hiddenimports=['objc', 'AppKit'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['PySide6.QtPdf'],
     noarchive=False,
     optimize=0,
 )
+
+# The widget application does not use a software keyboard or PDF image decoding.
+# Remove their plugins and frameworks pulled in by Qt's generic collection hook.
+def unused_qt_component(entry):
+    name = entry[0].lower()
+    return ('qtvirtualkeyboard' in name or 'qtpdf' in name
+            or name.endswith('/libqpdf.dylib'))
+
+a.binaries = [entry for entry in a.binaries if not unused_qt_component(entry)]
+a.datas = [entry for entry in a.datas if not unused_qt_component(entry)]
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -55,7 +71,7 @@ app = BUNDLE(
     bundle_identifier='com.wanglei.deskpet',
     info_plist={
         'CFBundleDisplayName': 'DeskPet',
-        'CFBundleShortVersionString': '0.2.0',
-        'CFBundleVersion': '3',
+        'CFBundleShortVersionString': '0.2.1',
+        'CFBundleVersion': '4',
     },
 )

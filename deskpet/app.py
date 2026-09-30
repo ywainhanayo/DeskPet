@@ -116,6 +116,7 @@ class DeskPetWidget(QLabel):
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
             | Qt.WindowType.WindowStaysOnTopHint
+            | Qt.WindowType.NoDropShadowWindowHint
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         first = self.frames["idle_1"]
@@ -188,6 +189,8 @@ class DeskPetWidget(QLabel):
             ns_win = ns_view.window()
             if ns_win is None:
                 return
+            # macOS otherwise outlines translucent sprite edges with a window shadow.
+            ns_win.setHasShadow_(False)
             ns_win.setLevel_(NSStatusWindowLevel)
             beh = ns_win.collectionBehavior()
             ns_win.setCollectionBehavior_(

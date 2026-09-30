@@ -53,6 +53,7 @@ class SettingsDialog(QDialog):
         self.client = client
         self.character_id = client.character_id
         self._default_name = default_char_name
+        self._failed_persona_name = None
         self.setWindowTitle("桌宠设置")
         self.setMinimumWidth(400)
 
@@ -109,6 +110,11 @@ class SettingsDialog(QDialog):
 
     def _save(self):
         name, key = self._persist_fields()
+        if name == self._failed_persona_name:
+            # Saving after a failed lookup explicitly skips automatic retrieval.
+            pet_config.update_character(self.character_id, persona_of=name)
+            self.accept()
+            return
         persona_of = pet_config.character_settings(
             pet_config.load(), self.character_id, self._default_name)["persona_of"]
         if key and name != persona_of:
@@ -123,6 +129,7 @@ class SettingsDialog(QDialog):
                              close_on_done=False)
 
     def _start_generate(self, name, close_on_done):
+        self._failed_persona_name = None
         if not self.client.api_key:
             self.gen_status.setText("先填 DeepSeek API key 才能检索角色设定。")
             return
@@ -135,8 +142,12 @@ class SettingsDialog(QDialog):
     def _on_brief(self, ok, text, _source, name, close_on_done):
         self.buttons.button(QDialogButtonBox.StandardButton.Save).setEnabled(True)
         if not ok:
-            self.gen_status.setText("没查到这个角色的资料,本次未写入设定"
-                                    "(不影响聊天;可改名重试或编辑对应角色文件)。")
+            self._failed_persona_name = name
+            self.gen_status.setText(
+                "未能获取角色资料。原创角色或未收录的角色可能没有可检索信息；"
+                "也可能是网络或 API 请求失败。\n"
+                "基础设置已保存。点击“保存”可跳过联网设定并完成，"
+                "也可点击“重新生成设定”重试。")
             return
         dlg = PreviewDialog(name, self.character_id, text, parent=self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
