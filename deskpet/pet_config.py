@@ -26,6 +26,8 @@ def valid_character_id(value):
 def _base_dir():
     if sys.platform == "darwin":
         return os.path.expanduser("~/Library/Application Support")
+    if sys.platform == "win32" and os.environ.get("APPDATA"):
+        return os.environ["APPDATA"]   # Windows 惯例:%APPDATA%\DeskPet
     return os.path.expanduser("~")
 
 
